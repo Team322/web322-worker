@@ -1,9 +1,3 @@
-// const Eth = require('web3-eth');
-
-// const eth = new Eth('https://rpc2.sepolia.org');
-
-// console.log(eth);
-
 const fs = require("fs");
 const path = require("path");
 const Web3 = require('web3');
@@ -52,19 +46,13 @@ const makeRequest = async (contract, url) => {
 async function montiorNetwork(network, new_log) {
   const log = new_log;
   
-  log(`start monitoring network`);
+  log(`start monitoring contract: ${config[network].prefix}${deployment_info[network]['Web322Endpoint']}`);
 
   const web3 = new Web3(config[network].ws);
   const Contract = web3.eth.Contract;
 
   const account = web3.eth.accounts.privateKeyToAccount('0x'+config.account);
   web3.eth.accounts.wallet.add(account);
-  // log(`web3.eth.defaultAccount: ${web3.eth.defaultAccount}`);
-
-
-  // Contract.setProvider(config.sepolia_ws);
-  // Contract
-
 
   const contract = new Contract(getAbi('Web322Endpoint'), deployment_info[network]['Web322Endpoint'], {
     from: account.address,
@@ -85,7 +73,8 @@ async function montiorNetwork(network, new_log) {
     log(`sender: ${sender}`);
     log(`id: ${id}`);
     log(`req: ${req}`);
-    
+    // network+sender_addr additional_param enc_key
+    // network+sender_addr+id response user hash is_enc
 
   })
   .on('error', function(error, receipt) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
@@ -98,14 +87,11 @@ async function main() {
   for (const network of Object.keys(deployment_info)) {
     const f = log_color_fns[i];
     montiorNetwork(network, function (...args) {
-      console.log(`[${f(network)}]`.padEnd(20, ' '), ...args);
+      console.log(`[${f(network)}]`.padEnd(25, ' '), ...args);
     });
     i++;
   }
 }
-
-
-
 
 main().catch((error) => {
   console.error(error);
