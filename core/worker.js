@@ -56,20 +56,26 @@ function execPromise(cmd) {
     });
 }
 
-async function makeRequest({url, method, params, headers }) {
+async function makeRequest({url, method, data, headers }) {
   let headers_str = '';
   for (const [k, v] of Object.entries(headers)) {
     headers_str += ` -H "${k}: ${v}"`;
   }
-  let {stdout, stderr} = await execPromise(`mkdir data && sudo bash net-cap.sh ens4 'SSLKEYLOGFILE=data/tlskey curl ${headers_str} "${url}" > data/curl_data'`);
+  let data_str = `-d '${data}'`;
+  let inner = `SSLKEYLOGFILE=data/tlskey curl -X ${method} ${headers_str} ${data_str} "${url}" > data/curl_data`;
+  inner = inner.replace(/"/g, '\\"');
+  let {stdout, stderr} = await execPromise(`mkdir data && sudo bash net-cap.sh ens4 "${inner}"`);
   console.log({stdout, stderr});
-  ({stdout, stderr} = await execPromise('zip -r -9 data.zip data && mv data.zip ~/'));
+  ({stdout, stderr} = await execPromise(`zip -r -9 data.zip data`));
   console.log({stdout, stderr});
   const file = fs.readFileSync('./data/curl_data', 'utf8');
   ({stdout, stderr} = await execPromise('rm -r data'));
   ({stdout, stderr} = await execPromise('sha1sum ~/data.zip'));
+  
+
   const hash = stdout.split(' ')[0];
   console.log(`hash: ${hash}`);
+  ({stdout, stderr} = await execPromise(`mv data.zip /home/alanc/invocations/${hash}.zip`));
   return {output: file, hash};
 }
 
@@ -133,6 +139,19 @@ async function montiorNetwork(network, new_log) {
     const method = parsed[0];
     const url = parsed[1];
 
+    let curr = 2;
+    let headers = {};
+    let data = '';
+    while (curr < parsed.length) {
+      if (parsed[curr][0] === 'H') {
+        headers[parsed[curr].slice(1)] = parsed[curr+1];
+        curr += 2;
+      } else if (parsed[curr][0] === 'D') {
+        data = parsed[curr].slice(1);
+        curr++;
+      }
+    }
+
 
 
     
@@ -144,13 +163,41 @@ async function montiorNetwork(network, new_log) {
     log(`id: ${id}`);
     log(`req: ${req}`);
     log(`parsed: ${parsed}`);
+    
 
+    const host = 'http://127.0.0.1:5000/';
+    const res = await fetch(host+'getapiparams',
+    {
+      headers: {
+        'X-API-KEY': config.backend_key,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify({
+        contract_address: sender.toUpperCase(),
+        contract_chain: 'Ethereum',
+        api_url: url,
+      }),
+
+    });
+    const json = await res.json();
+    console.log(json);
+    const params = JSON.parse(json.params);
+
+    // let server_headers_str = '';
+    // if (params.headers) {
+    //   for (const [k,v] of Object.entries(params.headers)) {
+    //     server_headers_str += ` -H "${k}: ${v}"`;
+    //   }
+    // }
+    // console.log(`server_headers_str: ${server_headers_str}`);
 
     const {output, hash} = await makeRequest({
-      url: 'https://api.ipify.org/?format=json',
-      method: 'get',
-      params: {},
-      headers: {'X-MyHeader': '123'},
+      url,
+      method,
+      headers: {...params.headers, ...headers},
+      data,
     });
 
     const sender_contract = new Contract(getAbi('IWeb322Client'), sender, {
@@ -168,6 +215,26 @@ async function montiorNetwork(network, new_log) {
       encoded_hash
     ).send({gas: 1000000});
     log(r);
+
+
+    const store_res = await fetch(host+'storeinvocation',
+    {
+      headers: {
+        'X-API-KEY': config.backend_key,
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      method: 'POST',
+      body: JSON.stringify({
+        contract_address: sender.toUpperCase(),
+        contract_chain: 'Ethereum',
+        api_url: url,
+        uid: hash,
+      }),
+
+    });
+    const store_json = await store_res.json();
+    console.log(store_json);
     // network+sender_addr additional_param enc_key
     // network+sender_addr+id response user hash is_enc
 
@@ -184,9 +251,49 @@ async function main() {
   //   params: {},
   //   headers: {},
   // });
-  // const host = 'http://localhost:5000/'
-  // await fetch(host+'api/getapiparams', {
-  //   )
+  // const r = await fetch(host+'/getapiparams',
+  //   {
+  //     headers: {
+  //       'X-API-KEY': config.backend_key,
+  //     },
+  //     method: 'GET',
+  //     body: JSON.stringify({
+  //       contract_address: sender.toUpperCase(),
+  //       contract_chain: 'Ethereum',
+  //       api_url: url,
+  //     }),
+
+  //   });
+
+  // const r = await fetch(host+'getapiparams',
+  //   {
+  //     headers: {
+  //       'X-API-KEY': config.backend_key,
+  //       'Accept': 'application/json',
+  //       'Content-Type': 'application/json',
+  //     },
+  //     method: 'POST',
+  //     body: JSON.stringify({
+  //       contract_address: '0x59C70101BA058FD9FF7094973FD8B8CF2c5d092f'.toUpperCase(),
+  //       contract_chain: 'Ethereum',
+  //       api_url: 'https://api.openai.com/v1/completions',
+  //     }),
+
+  //   });
+  // const json = await r.json();
+  // const params = JSON.parse(json.params);
+  
+  // let server_headers_str = '';
+  // if (params.headers) {
+  //   for (const [k,v] of Object.entries(params.headers)) {
+  //     server_headers_str += ` -H "${k}: ${v}"`;
+  //   }
+  // }
+  // console.log(`server_headers_str: ${server_headers_str}`);
+
+  // console.log(r);
+  // console.log();
+  // salkdg
   // console.log(parse_req('cgetfai.commHContent-Typepapplication/jsonnHAuthorizationvBearer $OPENAI_API_KEYxiD{"model":"gpt-3.5-turbo","messages":[{"role":"user","content":"Say this is a test!"}],"temperature":0.7}'))
 
   let i = 0;

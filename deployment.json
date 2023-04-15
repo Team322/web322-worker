@@ -1,5 +1,23 @@
 {
   "sepolia": {
     "Web322Endpoint": "0x85208E3eC4A283d3F738be315760085b636987C3"
+  },
+  "polygon": {
+    "Web322Endpoint": "0x2bEEBE8863E7E4A97F6a970E192042B4B489f4D2"
+  },
+  "scroll": {
+    "Web322Endpoint": "0xc427aAf0f257e71443123b821fE580aB80E16974"
+  },
+  "mantle": {
+    "Web322Endpoint": "0xe21a747262D2a76448c30a3D7B30A411F77A38ff"
+  },
+  "chiado": {
+    "Web322Endpoint": "0x7Bb239a75CA9963Ec23c673a62895b56eFadC55D"
+  },
+  "alfajores": {
+    "Web322Endpoint": "0xc427aAf0f257e71443123b821fE580aB80E16974"
+  },
+  "taiko": {
+    "Web322Endpoint": "0xf0027c86922Eb6b6D411DcB62557955c30Eaf0d6"
   }
 }
