@@ -32,6 +32,7 @@ module.exports = {
     chiado: {
       url: config.chiado.http,
       accounts: [config.account],
+      gasPrice: 10000000,
       // accounts: [privateKey1, privateKey2, ...]
     },
     alfajores: {
