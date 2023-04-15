@@ -71,10 +71,30 @@ function parse_req(s) {
   let out = [];
   while (curr < s.length) {
     const l = s[curr].charCodeAt(0) & 0b11111;
-    assert(l <= 23);
-    const data = s.slice(curr+1, curr+l+1);
-    out.push(data);
-    curr += l+1;
+    var len = 0;
+    if (l <= 23) {
+      const data = s.slice(curr+1, curr+l+1);
+      out.push(data);
+      curr += l+1;
+    } else {
+      var skip = 2**(l - 24);
+      const skipped = skip;
+      var len = 0;
+      var offset = 0;
+      var inner_curr = curr+1;
+      while (skip > 0 && inner_curr < s.length) {
+        len = len + (s[inner_curr].charCodeAt(0) * (2 ** offset));
+        // len = (len << 8) | s[inner_curr].charCodeAt(0);
+        offset += 8;
+        inner_curr += 1;
+        skip -= 1;
+      }
+      console.log(len);
+      console.log(skipped);
+      const data = s.slice(curr+skipped+1, curr+skipped+len+2+(l-24));
+      out.push(data);
+      curr += skipped+len+3;
+    }
   }
   return out;
 }
@@ -152,7 +172,9 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+console.log(parse_req('cgetfai.commHContent-Typepapplication/jsonnHAuthorizationvBearer $OPENAI_API_KEYxiD{"model":"gpt -3.5-turbo","messages":[{"role": "user","content":"Say this is a test!"}],"temperature":0.7}xiD{"model":"gpt -3.5-turbo","messages":[{"role": "user","content":"Say this is a test!"}],"temperature":0.7}'))
+
+// main().catch((error) => {
+//   console.error(error);
+//   process.exitCode = 1;
+// });
