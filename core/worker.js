@@ -95,7 +95,8 @@ async function montiorNetwork(network, new_log) {
   });
 
   // console.log(contract);
-  log(parse_req('cgetfai.comfpromptvDraw a unicorn in TikZktemperaturea0hlogprobsefalse'));
+  // log(parse_req('cgetfai.comfpromptvDraw a unicorn in TikZktemperaturea0hlogprobsefalse'));
+  log(parse_req('cgetfai.commHContent-Typepapplication/jsonnHAuthorizationvBearer $OPENAI_API_KEYxiD{"model":"gpt-3.5-turbo","messages":[{"role":"user","content":"Say this is a test!"}],"temperature":0.7}'))
   contract.events.Web2Request()
   .on("connected", async function(subscriptionId){
     log(`subscriptionId: ${subscriptionId}`);
@@ -110,14 +111,14 @@ async function montiorNetwork(network, new_log) {
     const method = parsed[0];
     const url = parsed[1];
 
-    const output = await makeRequest({
-      url,
-      method,
-      params: {},
-      headers: {},
-    });
+    // const output = await makeRequest({
+    //   url,
+    //   method,
+    //   params: {},
+    //   headers: {},
+    // });
 
-    
+
 
     log('Got a new event');
     
