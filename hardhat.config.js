@@ -28,6 +28,17 @@ module.exports = {
       url: config.scroll.http,
       accounts: [config.account],
       // accounts: [privateKey1, privateKey2, ...]
+    },
+    chiado: {
+      url: config.chiado.http,
+      accounts: [config.account],
+      // accounts: [privateKey1, privateKey2, ...]
+    },
+    alfajores: {
+      url: config.alfajores.http,
+      accounts: [config.account],
+      // accounts: [privateKey1, privateKey2, ...]
     }
+    
   },
 };
