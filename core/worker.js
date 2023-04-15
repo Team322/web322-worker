@@ -7,6 +7,17 @@
 const fs = require("fs");
 const path = require("path");
 const Web3 = require('web3');
+const chalk = require('chalk');
+
+const log_color_fns = [
+  chalk.green,
+  chalk.blue,
+  chalk.yellow,
+  chalk.red,
+  chalk.magenta,
+  chalk.cyan,
+  chalk.gray,
+]
 
 const config = require('../config.js');
 const deployment_info = require('../deployment.json');
@@ -38,10 +49,8 @@ const makeRequest = async (contract, url) => {
   // console.log(r);
 }
 
-async function montiorNetwork(network) {
-  function log(...args) {
-    console.log(`[${network}]`.padEnd(20, ' '), ...args);
-  }
+async function montiorNetwork(network, new_log) {
+  const log = new_log;
   
   log(`start monitoring network`);
 
@@ -85,8 +94,13 @@ async function montiorNetwork(network) {
 }
 
 async function main() {
+  let i = 0;
   for (const network of Object.keys(deployment_info)) {
-    montiorNetwork(network);
+    const f = log_color_fns[i];
+    montiorNetwork(network, function (...args) {
+      console.log(`[${f(network)}]`.padEnd(20, ' '), ...args);
+    });
+    i++;
   }
 }
 
