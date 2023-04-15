@@ -8,11 +8,11 @@
   },
   "author": "",
   "license": "ISC",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^2.0.2",
+    "hardhat": "^2.13.1"
+  },
   "dependencies": {
     "web3": "^1.9.0"
-  },
-  "devDependencies": {
-    "@nomicfoundation/hardhat-foundry": "^1.0.1",
-    "hardhat": "^2.13.1"
   }
 }

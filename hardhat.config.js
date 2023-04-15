@@ -1,35 +1,18 @@
-
-require("@nomicfoundation/hardhat-foundry");
+require("@nomicfoundation/hardhat-toolbox");
 
 const config = require('./config.js');
 
-
+/** @type import('hardhat/config').HardhatUserConfig */
 module.exports = {
-  defaultNetwork: "sepolia",
+  solidity: "0.8.18",
+  defaultNetwork: "hardhat",
   networks: {
     hardhat: {
     },
     sepolia: {
       url: config.sepolia,
+      accounts: [config.account],
       // accounts: [privateKey1, privateKey2, ...]
     }
   },
-  solidity: {
-    version: "0.8.13",
-    settings: {
-      optimizer: {
-        enabled: true,
-        runs: 200
-      }
-    }
-  },
-  paths: {
-    sources: "./contracts",
-    tests: "./test",
-    cache: "./cache",
-    artifacts: "./artifacts"
-  },
-  mocha: {
-    timeout: 40000
-  }
-}
+};
