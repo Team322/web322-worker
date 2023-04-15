@@ -16,5 +16,8 @@
   },
   "chiado": {
     "Web322Endpoint": "0xe21a747262D2a76448c30a3D7B30A411F77A38ff"
+  },
+  "mantle": {
+    "Web322Endpoint": "0x3542992C44F6fE644848d61655E1d70862A111bD"
   }
 }

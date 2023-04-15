@@ -39,6 +39,11 @@ module.exports = {
       url: config.alfajores.http,
       accounts: [config.account],
       // accounts: [privateKey1, privateKey2, ...]
+    },
+    mantle: {
+      url: config.mantle.http,
+      accounts: [config.account],
+      // accounts: [privateKey1, privateKey2, ...]
     }
     
   },
