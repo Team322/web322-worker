@@ -5,11 +5,11 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "./Web322.sol";
 
 contract Web322Endpoint is Ownable {
-  event Web2Request(address sender, Web322.Request req);
+  event Web2Request(address sender, uint256 id, bytes buf);
 
-  function request(Web322.Request calldata req) public payable {
+  function request(uint256 id, bytes calldata buf) public payable {
     require(msg.value >= 0.000001 ether);
-    emit Web2Request(msg.sender, req);
+    emit Web2Request(msg.sender, id, buf);
   }
 
   function withdraw() public onlyOwner {

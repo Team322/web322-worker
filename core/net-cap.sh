@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 # set -x
+set -e
 
 if [[ $EUID -ne 0 ]]; then
     echo "You must be root to run this script"
@@ -88,14 +89,19 @@ iptables -A FORWARD -i ${IFACE} -o ${VETH} -j ACCEPT
 iptables -A FORWARD -o ${IFACE} -i ${VETH} -j ACCEPT
 
 # start the capture
-tcpdump -i ${VETH} -w dump.pcap "tcp port https" &
+tcpdump -U -i ${VETH} -w data/dump.pcap "tcp port https" &
 
 # Get into namespace
-ip netns exec ${NS} /bin/bash -c "SSLKEYLOGFILE=tlskey curl https://github.com > curl_data"
+ip netns exec ${NS} /bin/bash -c "$2"
 
-# jobs -p
+sleep 2
+jobs -l
 jobs -p | xargs kill
 # kill %1
 # jobs -p
+ip a
+chmod 666 data/dump.pcap
+chmod 666 data/tlskey
+chmod 666 data/curl_data
 
 echo 'all done'
