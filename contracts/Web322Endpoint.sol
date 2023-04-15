@@ -7,7 +7,8 @@ import "./Web322.sol";
 contract Web322Endpoint is Ownable {
   event Web2Request(address sender, Web322.Request req);
 
-  function request(Web322.Request calldata req) public payable{
+  function request(Web322.Request calldata req) public payable {
+    require(msg.value >= 0.000001 ether);
     emit Web2Request(msg.sender, req);
   }
 

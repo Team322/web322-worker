@@ -7,6 +7,7 @@
 const hre = require("hardhat");
 const fs = require("fs");
 const path = require("path");
+const config = require('../config.js');
 
 
 
@@ -30,6 +31,8 @@ async function main() {
   // );
   
   
+  const network = hre.network.name;
+  console.log(`network: ${network}`);
 
   const Web322Endpoint = await hre.ethers.getContractFactory("Web322Endpoint");
   const web322Endpoint = await Web322Endpoint.deploy();
@@ -37,7 +40,7 @@ async function main() {
   await web322Endpoint.deployed();
 
   console.log(
-    `Web322Endpoint deployed to ${web322Endpoint.address}`
+    `Web322Endpoint deployed to ${config[network].prefix}${web322Endpoint.address}`
   );
 
 
@@ -47,8 +50,8 @@ async function main() {
   ));
   const json = JSON.parse(fs.readFileSync(deployment_path, "utf8"));
   
-  json[hre.network.name] = {}
-  json[hre.network.name]['Web322Endpoint'] = web322Endpoint.address;
+  json[network] = {}
+  json[network]['Web322Endpoint'] = web322Endpoint.address;
 
   fs.writeFileSync(deployment_path, JSON.stringify(json));
 

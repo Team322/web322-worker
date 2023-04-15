@@ -31,7 +31,7 @@ const makeRequest = async (contract, url) => {
   r = await contract.methods.request({
     id: 200,
     req: Web3.utils.hexToBytes(Web3.utils.asciiToHex(url)),
-  }).send({gas: 1000000});
+  }).send({gas: 1000000, value: '1000000000000'});
   // console.log(r);
 }
 
@@ -60,11 +60,20 @@ async function main() {
   contract.events.Web2Request()
   .on("connected", async function(subscriptionId){
     console.log(`subscriptionId: ${subscriptionId}`);
-    // await makeRequest(contract, 'https://google.com');
+    await makeRequest(contract, 'https://google.com/abc');
   })
   .on('data', function(event){
-    console.log('called');
     console.log(event); // same results as the optional callback above
+    const sender = event.returnValues.sender;
+    const id = event.returnValues.req.id;
+    const req = Web3.utils.hexToAscii(event.returnValues.req.req);
+    console.log('Got a new event');
+    
+    console.log(`sender: ${sender}`);
+    console.log(`id: ${id}`);
+    console.log(`req: ${req}`);
+    
+
   })
   .on('error', function(error, receipt) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
     console.log('error: '+error);
