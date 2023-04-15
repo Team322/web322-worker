@@ -3,42 +3,48 @@
 // const eth = new Eth('https://rpc2.sepolia.org');
 
 // console.log(eth);
+
+const fs = require("fs");
+const path = require("path");
+
+const getAbi = name => {
+  try {
+    const dir = path.resolve(
+      __dirname,
+      `../artifacts/contracts/${name}.sol/${name}.json`
+    );
+    const file = fs.readFileSync(dir, "utf8");
+    const json = JSON.parse(file);
+    const abi = json.abi;
+    console.log(`abi`, abi)
+
+    return abi;
+  } catch (e) {
+    console.log(`e`, e)
+  }
+}
+
 async function main() {
   const Web3 = require('web3');
   const config = require('../config.js');
 
   const web3 = new Web3(config.sepolia_ws);
-
-  console.log(web3.eth);
-  web3.eth.defaultAccount = '0xDA4e7a6E6FC5605a88Fb5768E9d92A59E8356ca5';
-
   const Contract = web3.eth.Contract;
+
+  const account = web3.eth.accounts.privateKeyToAccount('0x'+config.account);
+  web3.eth.accounts.wallet.add(account);
+  web3.eth.defaultAccount = account.address;
+  console.log(`web3.eth.defaultAccount: ${web3.eth.defaultAccount}`);
+
 
   // Contract.setProvider(config.sepolia_ws);
   // Contract
 
-  const fs = require("fs");
-  const path = require("path");
 
-  const getAbi = name => {
-    try {
-      const dir = path.resolve(
-        __dirname,
-        `../artifacts/contracts/${name}.sol/${name}.json`
-      );
-      const file = fs.readFileSync(dir, "utf8");
-      const json = JSON.parse(file);
-      const abi = json.abi;
-      console.log(`abi`, abi)
-
-      return abi;
-    } catch (e) {
-      console.log(`e`, e)
-    }
-  }
-
-  const contract = new Contract(getAbi('Web322Endpoint'), config.endpoint_address);
-  console.log(contract);
+  const contract = new Contract(getAbi('Web322Endpoint'), config.endpoint_address, {
+    from: account.address,
+  });
+  // console.log(contract);
   let r = await contract.methods.owner().call();
   console.log(r);
 
@@ -47,11 +53,21 @@ async function main() {
 
   // console.log(contract.events.allEvents());
 
-  contract.events.allEvents()
-  .on("connected", function(subscriptionId){
+  contract.events.Web2Request(event => {
+    console.log('called two');
+    console.log(event);
+  })
+  .on("connected", async function(subscriptionId){
     console.log(subscriptionId);
+    console.log('making a request');
+    r = await contract.methods.request({
+      id: 200,
+      req: web3.utils.hexToBytes(web3.utils.asciiToHex('abcde')),
+    }).send({gas: 1000000});
+    console.log(r);
   })
   .on('data', function(event){
+    console.log('called');
     console.log(event); // same results as the optional callback above
   })
   // .on('changed', function(event){
@@ -61,8 +77,7 @@ async function main() {
     console.log('error: '+error);
   });
 
-  r = await contract.methods.withdraw().call();
-  console.log(r);
+  
 }
 
 

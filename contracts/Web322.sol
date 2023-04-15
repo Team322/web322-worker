@@ -3,8 +3,7 @@ pragma solidity ^0.8.9;
 
 library Web322 {
   struct Request {
-    bytes32 id;
+    uint256 id;
     bytes req;
   }
-  
 }
