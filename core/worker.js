@@ -91,9 +91,9 @@ function parse_req(s) {
       }
       console.log(len);
       console.log(skipped);
-      const data = s.slice(curr+skipped+1, curr+skipped+len+2+(l-24));
+      const data = s.slice(curr+skipped+1, curr+skipped+len+1);
       out.push(data);
-      curr += skipped+len+3;
+      curr += skipped+len+1;
     }
   }
   return out;
@@ -172,7 +172,7 @@ async function main() {
   }
 }
 
-console.log(parse_req('cgetfai.commHContent-Typepapplication/jsonnHAuthorizationvBearer $OPENAI_API_KEYxiD{"model":"gpt -3.5-turbo","messages":[{"role": "user","content":"Say this is a test!"}],"temperature":0.7}xiD{"model":"gpt -3.5-turbo","messages":[{"role": "user","content":"Say this is a test!"}],"temperature":0.7}'))
+console.log(parse_req('cgetfai.commHContent-Typepapplication/jsonnHAuthorizationvBearer $OPENAI_API_KEYxiD{"model":"gpt-3.5-turbo","messages":[{"role":"user","content":"Say this is a test!"}],"temperature":0.7}xiD{"model":"gpt-3.5-turbo","messages":[{"role":"user","content":"Say this is a test!"}],"temperature":0.7}'))
 
 // main().catch((error) => {
 //   console.error(error);
