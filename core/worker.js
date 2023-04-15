@@ -6,6 +6,8 @@
 
 const fs = require("fs");
 const path = require("path");
+const Web3 = require('web3');
+
 
 const getAbi = name => {
   try {
@@ -24,16 +26,26 @@ const getAbi = name => {
   }
 }
 
-async function main() {
-  const Web3 = require('web3');
-  const config = require('../config.js');
+const makeRequest = async (contract, url) => {
+  console.log(`making a request for url: ${url}`);
+  r = await contract.methods.request({
+    id: 200,
+    req: Web3.utils.hexToBytes(Web3.utils.asciiToHex(url)),
+  }).send({gas: 1000000});
+  // console.log(r);
+}
 
-  const web3 = new Web3(config.sepolia_ws);
+async function main() {
+  const config = require('../config.js');
+  const deployment_info = require('../deployment.json');
+
+  const network = 'sepolia';
+  
+  const web3 = new Web3(config[network].ws);
   const Contract = web3.eth.Contract;
 
   const account = web3.eth.accounts.privateKeyToAccount('0x'+config.account);
   web3.eth.accounts.wallet.add(account);
-  web3.eth.defaultAccount = account.address;
   console.log(`web3.eth.defaultAccount: ${web3.eth.defaultAccount}`);
 
 
@@ -41,43 +53,22 @@ async function main() {
   // Contract
 
 
-  const contract = new Contract(getAbi('Web322Endpoint'), config.endpoint_address, {
+  const contract = new Contract(getAbi('Web322Endpoint'), deployment_info[network]['Web322Endpoint'], {
     from: account.address,
   });
-  // console.log(contract);
-  let r = await contract.methods.owner().call();
-  console.log(r);
-
-  // r = await contract.methods.withdraw().call();
-  // console.log(r);
-
-  // console.log(contract.events.allEvents());
-
-  contract.events.Web2Request(event => {
-    console.log('called two');
-    console.log(event);
-  })
+  
+  contract.events.Web2Request()
   .on("connected", async function(subscriptionId){
-    console.log(subscriptionId);
-    console.log('making a request');
-    r = await contract.methods.request({
-      id: 200,
-      req: web3.utils.hexToBytes(web3.utils.asciiToHex('abcde')),
-    }).send({gas: 1000000});
-    console.log(r);
+    console.log(`subscriptionId: ${subscriptionId}`);
+    // await makeRequest(contract, 'https://google.com');
   })
   .on('data', function(event){
     console.log('called');
     console.log(event); // same results as the optional callback above
   })
-  // .on('changed', function(event){
-  //   // remove event from local database
-  // })
   .on('error', function(error, receipt) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
     console.log('error: '+error);
-  });
-
-  
+  });  
 }
 
 

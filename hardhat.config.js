@@ -10,7 +10,7 @@ module.exports = {
     hardhat: {
     },
     sepolia: {
-      url: config.sepolia,
+      url: config.sepolia.http,
       accounts: [config.account],
       // accounts: [privateKey1, privateKey2, ...]
     }
