@@ -57,13 +57,20 @@ function execPromise(cmd) {
 }
 
 async function makeRequest({url, method, params, headers }) {
-  let {stdout, stderr} = await execPromise(`mkdir data && sudo bash net-cap.sh ens4 'SSLKEYLOGFILE=data/tlskey curl "${url}" > data/curl_data'`);
+  let headers_str = '';
+  for (const [k, v] of Object.entries(headers)) {
+    headers_str += ` -H "${k}: ${v}"`;
+  }
+  let {stdout, stderr} = await execPromise(`mkdir data && sudo bash net-cap.sh ens4 'SSLKEYLOGFILE=data/tlskey curl ${headers_str} "${url}" > data/curl_data'`);
   console.log({stdout, stderr});
   ({stdout, stderr} = await execPromise('zip -r -9 data.zip data && mv data.zip ~/'));
   console.log({stdout, stderr});
   const file = fs.readFileSync('./data/curl_data', 'utf8');
   ({stdout, stderr} = await execPromise('rm -r data'));
-  return file;
+  ({stdout, stderr} = await execPromise('sha1sum ~/data.zip'));
+  const hash = stdout.split(' ')[0];
+  console.log(`hash: ${hash}`);
+  return {output: file, hash};
 }
 
 function parse_req(s) {
@@ -77,23 +84,19 @@ function parse_req(s) {
       out.push(data);
       curr += l+1;
     } else {
-      var skip = 2**(l - 24);
-      const skipped = skip;
+      var size = 1<<(l - 24);
       var len = 0;
-      var offset = 0;
-      var inner_curr = curr+1;
-      while (skip > 0 && inner_curr < s.length) {
-        len = len + (s[inner_curr].charCodeAt(0) * (2 ** offset));
-        // len = (len << 8) | s[inner_curr].charCodeAt(0);
-        offset += 8;
-        inner_curr += 1;
-        skip -= 1;
+      for (let i = 0; i < size; i++) {
+        len = len + (s[curr+1+i].charCodeAt(0))
+        len = len << 8;
       }
+      len = len >> 8;
+      console.log(size);
       console.log(len);
-      console.log(skipped);
-      const data = s.slice(curr+skipped+1, curr+skipped+len+1);
+      const data = s.slice(curr+1+size, curr+1+size+len);
       out.push(data);
-      curr += skipped+len+1;
+      console.log(out);
+      curr += 1+size+len;
     }
   }
   return out;
@@ -116,7 +119,6 @@ async function montiorNetwork(network, new_log) {
 
   // console.log(contract);
   // log(parse_req('cgetfai.comfpromptvDraw a unicorn in TikZktemperaturea0hlogprobsefalse'));
-  log(parse_req('cgetfai.commHContent-Typepapplication/jsonnHAuthorizationvBearer $OPENAI_API_KEYxiD{"model":"gpt-3.5-turbo","messages":[{"role":"user","content":"Say this is a test!"}],"temperature":0.7}'))
   contract.events.Web2Request()
   .on("connected", async function(subscriptionId){
     log(`subscriptionId: ${subscriptionId}`);
@@ -131,13 +133,9 @@ async function montiorNetwork(network, new_log) {
     const method = parsed[0];
     const url = parsed[1];
 
-    // const output = await makeRequest({
-    //   url,
-    //   method,
-    //   params: {},
-    //   headers: {},
-    // });
 
+
+    
 
 
     log('Got a new event');
@@ -146,6 +144,30 @@ async function montiorNetwork(network, new_log) {
     log(`id: ${id}`);
     log(`req: ${req}`);
     log(`parsed: ${parsed}`);
+
+
+    const {output, hash} = await makeRequest({
+      url: 'https://api.ipify.org/?format=json',
+      method: 'get',
+      params: {},
+      headers: {'X-MyHeader': '123'},
+    });
+
+    const sender_contract = new Contract(getAbi('IWeb322Client'), sender, {
+      from: account.address,
+    });
+    const hex_id = id;
+    const encoded_output = output;
+    const encoded_hash = '0x'+hash;
+    console.log(`encoded_output: ${encoded_output}`);
+    console.log(`encoded_hash: ${encoded_hash}`);
+    console.log(`hex_id: ${hex_id}`);
+    const r = await sender_contract.methods.fulfill(
+      hex_id,
+      encoded_output,
+      encoded_hash
+    ).send({gas: 1000000});
+    log(r);
     // network+sender_addr additional_param enc_key
     // network+sender_addr+id response user hash is_enc
 
@@ -162,6 +184,11 @@ async function main() {
   //   params: {},
   //   headers: {},
   // });
+  // const host = 'http://localhost:5000/'
+  // await fetch(host+'api/getapiparams', {
+  //   )
+  // console.log(parse_req('cgetfai.commHContent-Typepapplication/jsonnHAuthorizationvBearer $OPENAI_API_KEYxiD{"model":"gpt-3.5-turbo","messages":[{"role":"user","content":"Say this is a test!"}],"temperature":0.7}'))
+
   let i = 0;
   for (const network of Object.keys(deployment_info)) {
     const f = log_color_fns[i];
@@ -172,7 +199,6 @@ async function main() {
   }
 }
 
-// console.log(parse_req('cgetfai.commHContent-Typepapplication/jsonnHAuthorizationvBearer $OPENAI_API_KEYxiD{"model":"gpt-3.5-turbo","messages":[{"role":"user","content":"Say this is a test!"}],"temperature":0.7}xiD{"model":"gpt-3.5-turbo","messages":[{"role":"user","content":"Say this is a test!"}],"temperature":0.7}'))
 
 main().catch((error) => {
   console.error(error);
