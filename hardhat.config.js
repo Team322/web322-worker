@@ -23,6 +23,11 @@ module.exports = {
       url: config.taiko.http,
       accounts: [config.account],
       // accounts: [privateKey1, privateKey2, ...]
+    },
+    scroll: {
+      url: config.scroll.http,
+      accounts: [config.account],
+      // accounts: [privateKey1, privateKey2, ...]
     }
   },
 };
